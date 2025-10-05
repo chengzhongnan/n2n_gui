@@ -1,0 +1,133 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="framework.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="N2NGUI.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="n2n\getopt.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="n2n\minilzo.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="n2n\n2n.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="n2n\n2n_keyfile.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="n2n\n2n_win32.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="n2n\twofish.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="n2n\wintap.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="n2n\lzoconf.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="n2n\lzodefs.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="n2n\sglib.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="n2n\n2n_wire.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="n2n\n2n_transforms.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="n2n\scm.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="N2NGUI.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="n2n\getopt.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="n2n\getopt1.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="n2n\minilzo.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="n2n\n2n.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="n2n\n2n_keyfile.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="n2n\n2n_win32.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="n2n\transform_aes.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="n2n\transform_null.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="n2n\transform_tf.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="n2n\twofish.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="n2n\version-msvc.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="n2n\win-scm.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="n2n\wintap.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="n2n\wire.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="n2n\edge.c">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="N2NGUI.rc">
+      <Filter>资源文件</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="small.ico">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="N2NGUI.ico">
+      <Filter>资源文件</Filter>
+    </Image>
+  </ItemGroup>
+</Project>
