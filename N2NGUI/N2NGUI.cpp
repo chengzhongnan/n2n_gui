@@ -1,5 +1,9 @@
-﻿// N2NGUI.cpp : 定義應用程序的入口點。
+// N2NGUI.cpp : 定義應用程序的入口點。
 // 整合了 n2n 核心功能和一個完整的 Win32 UI。
+
+#define _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
+#include <crtdbg.h>
 
 #include "framework.h"
 #include "N2NGUI.h"
@@ -7,12 +11,14 @@
 #include <process.h>    // For _beginthreadex
 #include <vector>
 #include <string>
+#include <memory>
 
 // 包含n2n的頭文件，並告訴C++编译器它是一個C函数
 extern "C" {
     // 假設 n2n.h 是您放置回調函數聲明的地方
     // 如果不是，請修改為正確的頭文件
  #include "./n2n/n2n.h" 
+
      int n2n_main(int argc, char** argv); // 我們重命名後的main函數
 }
 
@@ -51,45 +57,46 @@ void LoadSettingsFromRegistry(HWND hWnd);
 
 // --- 線程與回調函數 ---
 
-// 這是我們的日誌回調函數。它會被n2n的工作線程調用。
 void GuiLogCallback(const char* log_message, int len)
 {
-    // 重要：不能直接在這裡操作UI控件。
-    // 我們需要將消息發送給主UI線程來處理。
-    // 我們需要複製字符串，因為原始的log_message在棧上，很快會失效。
-    if (hLogEdit) {
-        char* msgCopy = _strdup(log_message);
-        // 使用 PostMessage 異步發送消息
-        PostMessage(GetParent(hLogEdit), WM_APPEND_LOG, 0, (LPARAM)msgCopy);
+    if (hLogEdit && IsWindow(hLogEdit)) 
+    {
+        // 使用 len 精确分配内存，防止 log_message 没有 \0 结尾导致读取越界
+        char* msgCopy = (char*)malloc(len + 1);
+        if (msgCopy) 
+        {
+            memcpy(msgCopy, log_message, len);
+            msgCopy[len] = '\0'; // 手动加上字符串结束符
+
+            // 关键修复：如果消息队列满了导致 PostMessage 失败，必须立刻释放内存！
+            if (!PostMessage(GetParent(hLogEdit), WM_APPEND_LOG, 0, (LPARAM)msgCopy)) 
+            {
+                free(msgCopy);
+            }
+        }
     }
 }
 
 // 這是n2n工作線程的入口函數
 unsigned __stdcall N2NThreadFunc(void* pArguments)
 {
-    std::vector<std::string>* args = static_cast<std::vector<std::string>*>(pArguments);
+    // 使用智能指針接管，這樣無論函數從哪裡退出，都會自動 delete args
+    std::unique_ptr<std::vector<std::string>> args(static_cast<std::vector<std::string>*>(pArguments));
 
-    // 將 std::string 轉換為 char**
     std::vector<char*> argv_vec;
     for (const auto& s : *args) {
         argv_vec.push_back((char*)s.c_str());
     }
 
     g_is_n2n_running = true;
-
-    // 1. 註冊我們的日誌回調函數
     n2n_set_log_callback(GuiLogCallback);
-
-    // 2. 調用n2n的主函數 (需要修改其內部循環以檢查 g_is_n2n_running)
-    // 先重置n2n的loop状态
     n2n_start(NULL);
+
     int result = n2n_main(argv_vec.size(), argv_vec.data());
 
-    // --- 線程結束後的清理工作 ---
-    delete args; // 釋放參數內存
-    g_is_n2n_running = false;
+    // --- 不需要手動 delete args 了，智能指針會幫你做 ---
 
-    // 發送一個消息通知UI線程工作已結束，可以更新界面了
+    g_is_n2n_running = false;
     PostMessage(GetParent(hLogEdit), WM_COMMAND, MAKEWPARAM(IDC_BUTTON_STOP, BN_CLICKED), (LPARAM)TRUE);
 
     return result;
@@ -102,6 +109,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     _In_ LPWSTR    lpCmdLine,
     _In_ int       nCmdShow)
 {
+    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+
     UNREFERENCED_PARAMETER(hPrevInstance);
     UNREFERENCED_PARAMETER(lpCmdLine);
 
@@ -348,13 +357,24 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     break;
     case WM_APPEND_LOG:
     {
-        // ... 您原有的 WM_APPEND_LOG 邏輯保持不變 ...
         char* msg = (char*)lParam;
+
+        // --- 核心防卡顿机制：限制日志框的最大字符数 ---
         int len = GetWindowTextLength(hLogEdit);
+        if (len > 30000) 
+        { 
+            // 如果文本超过约 3万 字符
+            SendMessage(hLogEdit, EM_SETSEL, 0, -1); // 全选
+            SendMessage(hLogEdit, EM_REPLACESEL, 0, (LPARAM)L"--- 日志过长，自动清空 ---\r\n");
+            len = GetWindowTextLength(hLogEdit); // 重新获取长度
+        }
+
+        // 追加新日志
         SendMessage(hLogEdit, EM_SETSEL, (WPARAM)len, (LPARAM)len);
         SendMessageA(hLogEdit, EM_REPLACESEL, 0, (LPARAM)msg);
         SendMessage(hLogEdit, EM_REPLACESEL, 0, (LPARAM)L"\r\n");
-        free(msg);
+
+        free(msg); // 正常释放
         break;
     }
     case WM_DESTROY:
@@ -372,6 +392,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 CloseHandle(hN2NThread);
             }
         }
+
+        // --- 关键清理：把积压在消息队列中没处理完的日志消息全部释放 ---
+        MSG peekMsg;
+        while (PeekMessage(&peekMsg, hWnd, WM_APPEND_LOG, WM_APPEND_LOG, PM_REMOVE)) 
+        {
+            free((char*)peekMsg.lParam);
+        }
+
         PostQuitMessage(0);
         break;
     }
